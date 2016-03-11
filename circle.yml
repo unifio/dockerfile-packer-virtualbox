@@ -1,0 +1,36 @@
+machine:
+  environment:
+    PKR_VERSION: 0.9.0
+  services:
+    - docker
+
+dependencies:
+  cache_directories:
+    - "~/docker"
+  override:
+    - docker info
+    - if [[ -e ~/docker/image.tar ]]; then docker load --input ~/docker/image.tar; fi
+    - docker build -t unifio/packer-virtualbox .
+    - mkdir -p ~/docker; docker save unifio/packer-virtualbox > ~/docker/image.tar
+
+test:
+  override:
+    - docker run unifio/packer-virtualbox version
+    - |
+      docker run -v ~/.aws:/root/.aws \
+                 -v `pwd`:/data \
+                 -w /data/uat \
+                 --rm unifio/packer-virtualbox validate -var version=${CIRCLE_BUILD_NUM} uat.json
+    - |
+      docker run -v ~/.aws:/root/.aws \
+                 -v `pwd`:/data \
+                 -w /data/uat \
+                 --rm unifio/packer-virtualbox build -var version=${CIRCLE_BUILD_NUM} uat.json
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker tag -f `docker images | grep -E 'unifio/packer' | awk '{print $3}'` unifio/packer:${PKR_VERSION}
+      - docker push unifio/packer
