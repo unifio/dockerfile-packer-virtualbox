@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y \
 	echo "deb http://download.virtualbox.org/virtualbox/debian jessie contrib" >> /etc/apt/sources.list.d/virtualbox.list && \
 	apt-get update && \
 	apt-get install -y \
-	virtualbox-5.0=${VBOX_VERSION} \
+	virtualbox-5.0=${VBOX_VERSION}~Debian~jessie \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN curl -s -o /packer-post-processor-vagrant-s3 "https://circle-artifacts.com/gh/unifio/packer-post-processor-vagrant-s3/13/artifacts/0/home/ubuntu/.go_workspace/bin/packer-post-processor-vagrant-s3" && \
